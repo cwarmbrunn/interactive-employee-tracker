@@ -1,10 +1,10 @@
 const express = require("express");
 // Import Connection File
 const db = require("./db/connection");
-// Connect to API Routes - need to confirm if needed
-const apiRoutes = require("./routes/apiRoutes");
 // Require Inquirer
 const inquirer = require("inquirer");
+// Require console.table
+require("console.table");
 
 // Set up the PORT access
 const PORT = process.env.PORT || 3001;
@@ -13,9 +13,6 @@ const app = express();
 // Express Middleware
 app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
-
-// Add after middleware
-app.use("/api", apiRoutes);
 
 // NOT FOUND response for unmatched routes
 app.use((req, res) => {
@@ -96,6 +93,8 @@ const promptUser = () => {
       if (userSelection.nextSteps === "View All Departments") {
         console.log("You chose to view all departments");
 
+        // Create a function to get all of the departments
+        getDepartments();
         // RETURN TO MENU
         promptUser();
       }
@@ -120,5 +119,11 @@ const endPrompt = () => {
   console.log("Thank you for using the application, goodbye! 👋");
 };
 
+function getDepartments() {
+  db.query("SELECT * FROM department", (err, res) => {
+    if (err) throw err;
+    console.table(res);
+  });
+}
 // Activate the inquirer prompts
 promptUser();
