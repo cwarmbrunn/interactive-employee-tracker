@@ -21,15 +21,15 @@ As is this an application built with Node.js, Inquirer, and MYSQL - there is no 
 - Node.js
 - MySQL
 - Inquirer
-- Console.table package 
+- Console.table package
 
 ---
 
 **Installation:**
 
-You will use the command line to interact with this application. 
+You will use the command line to interact with this application.
 
 ---
 
-**Screenshot:**
+**Screenshot and Screen Recording:**
 ![]()
