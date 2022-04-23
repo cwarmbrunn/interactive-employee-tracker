@@ -12,7 +12,7 @@ const db = mysql.createConnection({
   // MySQL Password
   password: process.env.DB_PW,
   // Connect to Database
-  database: "company",
+  database: "employee",
 });
 
 module.exports = db;
