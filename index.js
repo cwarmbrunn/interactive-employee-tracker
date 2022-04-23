@@ -89,8 +89,6 @@ const promptUser = () => {
         // TEST VERSION IS COMPLETE //
 
         addDepartment();
-        // Need to Create Inquirer Prompts
-        // Console.log = Added "ADDED DEPARTMENT" to the database
         // RETURN TO MENU
       }
 
