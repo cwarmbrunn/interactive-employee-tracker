@@ -107,18 +107,7 @@ const promptUser = () => {
 
 function getEmployees() {
   db.query(
-    // EMPLOYEE TITLE INFORMATION //
-    // Add the employee's title information from the role table
-    `SELECT employee.*, role.title AS title FROM employee JOIN role ON employee.role_id = role.id`,
-
-    // EMPLOYEE SALARY INFORMATION //
-    // Add the employee's salary information from the role table
-    // `SELECT employee.*, role.salary AS salary FROM employee JOIN role ON employee.role_id = role.id`,
-
-    // EMPLOYEE DEPARTMENT INFORMATION //
-    // Add the employee's department information from the role table
-    // `SELECT employee.*, role.department_id AS department FROM employee JOIN role ON employee.role_id = role.id`,
-
+    `SELECT employee.id,employee.first_name, employee.last_name, employee.manager_id, role.title, role.salary, department.name FROM employee JOIN role ON employee.role_id = role.id JOIN department ON role.department_id = department.id`,
     // EMPLOYEE MANAGER INFORMATION //
     // Add the employee's manager information from the role table
     // Right now, this shows as a number - need to set manager_id equal to employee id number (to show name)
