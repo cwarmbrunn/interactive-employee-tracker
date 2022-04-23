@@ -107,10 +107,9 @@ const promptUser = () => {
 
 function getEmployees() {
   db.query(
-    `SELECT employee.id,employee.first_name, employee.last_name, employee.manager_id, role.title, role.salary, department.name FROM employee JOIN role ON employee.role_id = role.id JOIN department ON role.department_id = department.id`,
+    `SELECT employee.id,employee.first_name AS 'first name', employee.last_name AS 'last name', role.title AS 'job title', department.name AS 'department', role.salary, employee.manager_id AS 'manager' FROM employee JOIN role ON employee.role_id = role.id JOIN department ON role.department_id = department.id`,
     // EMPLOYEE MANAGER INFORMATION //
-    // Add the employee's manager information from the role table
-    // Right now, this shows as a number - need to set manager_id equal to employee id number (to show name)
+    // TO DO: Right now, this shows as a number - need to set manager_id equal to employee id number (to show name)
     (err, res) => {
       if (err) throw err;
       console.table(res);
@@ -164,7 +163,9 @@ const addEmployee = () => {
           // Question #3 - Select Employee Role from Database
           type: "list",
           name: "role",
-          // Need to work out how to input the roles from the database here
+
+          // TO DO //
+          // Need to input role types from database here
           choices: ["TEST1", "TEST2"],
 
           // May need to do a .then statement to capture data at end
@@ -173,13 +174,12 @@ const addEmployee = () => {
           // Question #4 - Select Manager (If Applicable)
           type: "list",
           name: "manager_id",
+          // TO DO //
+          // Need to insert employee choices from database (and include None)
           choices: ["TEST MANAGER", "None"],
-          // May need to do a .then statement here as well
         },
       ])
       .then((answer) => {
-        // NEED TO CONFIRM SQL SET UP //
-
         const sql = `INSERT INTO employee (first_name, last_name, role_id, manager_id) VALUES (?,?,?,?)`;
         // Set up Parameters with the answers
         const params = [
@@ -188,18 +188,26 @@ const addEmployee = () => {
           answer.role,
           answer.manager_id,
         ];
-        console.log("DATA - LINE 198", params);
+        console.log("DATA FROM PARAMS - LINE 198", params);
+
+        // TO DO
+
+        // Figure out how to make this work and push the data to the
         db.query(sql, params, (err, res) => {
           if (err) {
             res.status(400).json({ error: err.message });
             return;
           }
+          // TODO - Figure out how to make this work and push the data to employee database
           res.json({ message: "Success!", data: answer });
         });
         console.log(
           `Added ${answer.first_name} ${answer.last_name} to the database!`
         );
       })
+      // TO DO //
+
+      // Get this to properly return to the menu after questions are answered
       // RETURN TO MENU AFTER PROMPTS ARE ANSWERED
       .then((answers) => {
         promptUser();
@@ -218,6 +226,10 @@ const updateEmployeeRole = () => {
           type: "list",
           name: "updatedEmployeeRole",
           message: "Which employee's role would you like to update?",
+
+          // TO DO //
+
+          // Pull employee first/last names from database
           choices: ["TEST #1", "TEST #2"],
         },
         {
@@ -225,6 +237,10 @@ const updateEmployeeRole = () => {
           type: "list",
           name: "newEmployeeRole",
           message: "Which role do you want to assign to the selected employee?",
+
+          // TO DO //
+
+          // Pull roles from the database
           choices: ["TEST ROLE #1", "TEST ROLE #2"],
         },
       ])
@@ -244,17 +260,24 @@ const updateEmployeeRole = () => {
 
 // Function to get all roles, role ID, the department that role belongs to and the salary
 function getRoles() {
-  db.query("SELECT * FROM role", (err, res) => {
-    if (err) throw err;
-    console.table(res);
-    promptUser();
-  });
+  db.query(
+    "SELECT employee.id, role.title, department.name AS 'department', role.salary FROM employee JOIN role ON employee.role_id = role.id JOIN department ON role.department_id = department.id ",
+    (err, res) => {
+      if (err) throw err;
+      console.table(res);
+      promptUser();
+    }
+  );
 }
 
 // #5 - ADD EMPLOYEE ROLE //
-
 const addEmployeeRole = () => {
   // Set up inquirer prompts
+  // const sql = `SELECT * FROM department`;
+  // db.promise().query(sql, (err, res) => {
+  //   if (err) throw err;
+  //   let deptNamesArray = [];
+  // });
   return (
     inquirer
       .prompt([
@@ -294,6 +317,9 @@ const addEmployeeRole = () => {
           type: "list",
           name: "newRoleDepartment",
           message: "What department does the role belong to?",
+          // TO DO //
+
+          // Pull the department list from the database
           choices: ["Banking", "Marketing", "Legal"],
         },
       ])
@@ -314,11 +340,14 @@ const addEmployeeRole = () => {
 // Function to get all departments and their ids
 
 function getDepartments() {
-  db.query("SELECT * FROM department", (err, res) => {
-    if (err) throw err;
-    console.table(res);
-    promptUser();
-  });
+  db.query(
+    "SELECT employee.id, department.name AS 'department' FROM employee  JOIN role on employee.role_id = role.id JOIN department ON role.department_id = department.id",
+    (err, res) => {
+      if (err) throw err;
+      console.table(res);
+      promptUser();
+    }
+  );
 }
 
 // #7 - ADD A DEPARTMENT //
@@ -344,12 +373,17 @@ const addDepartment = () => {
         },
       ])
       .then((answers) => {
+        let sql = `INSERT INTO department(name) VALUES (?)`;
+        db.query(sql, answers.addedDepartment, (err, res) => {
+          if (err) throw err;
+        });
+        // Need to add new department to list in department database
         // Set up a console log with template literals
         console.log(`You've added ${answers.addedDepartment} to the database!`);
       })
       // RETURN TO MENU AFTER PROMPT IS ANSWERED
       .then((answers) => {
-        promptUser();
+        getDepartments();
       })
   );
 };
