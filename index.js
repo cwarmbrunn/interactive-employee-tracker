@@ -46,8 +46,6 @@ const promptUser = () => {
         // TEST VERSION IS DONE //
         // Create a function to get all of the employees
         getEmployees();
-        // RETURN TO MENU
-        promptUser();
       }
       if (userSelection.nextSteps === "Add Employee") {
         addEmployee();
@@ -71,9 +69,6 @@ const promptUser = () => {
       if (userSelection.nextSteps === "View All Roles") {
         getRoles();
         // TEST VERSION IS COMPLETE //
-
-        // RETURN TO MENU
-        promptUser();
       }
       if (userSelection.nextSteps === "Add Role") {
         console.log("You chose to add a role!");
@@ -89,8 +84,6 @@ const promptUser = () => {
       if (userSelection.nextSteps === "View All Departments") {
         // Create a function to get all of the departments
         getDepartments();
-        // RETURN TO MENU
-        promptUser();
       }
       if (userSelection.nextSteps === "Add Department") {
         // TEST VERSION IS COMPLETE //
@@ -115,10 +108,29 @@ const promptUser = () => {
 // job titles, departments, salaries, and manager that the employees report to
 
 function getEmployees() {
-  db.query("SELECT * FROM employee", (err, res) => {
-    if (err) throw err;
-    console.table(res);
-  });
+  db.query(
+    // EMPLOYEE TITLE INFORMATION //
+    // Add the employee's title information from the role table
+    `SELECT employee.*, role.title AS title FROM employee JOIN role ON employee.role_id = role.id`,
+
+    // EMPLOYEE SALARY INFORMATION //
+    // Add the employee's salary information from the role table
+    // `SELECT employee.*, role.salary AS salary FROM employee JOIN role ON employee.role_id = role.id`,
+
+    // EMPLOYEE DEPARTMENT INFORMATION //
+    // Add the employee's department information from the role table
+    // `SELECT employee.*, role.department_id AS department FROM employee JOIN role ON employee.role_id = role.id`,
+
+    // EMPLOYEE MANAGER INFORMATION //
+    // Add the employee's manager information from the role table
+    // Right now, this shows as a number - need to set manager_id equal to employee id number (to show name)
+    (err, res) => {
+      if (err) throw err;
+      console.table(res);
+
+      promptUser();
+    }
+  );
 }
 
 // #2 - ADD NEW EMPLOYEE //
@@ -132,7 +144,7 @@ const addEmployee = () => {
         // Question #1 - Employee's Name
         {
           type: "input",
-          name: "employeeFirstName",
+          name: "first_name",
           message: "What's the employee's first name? (Required)",
 
           // Validation to ensure input
@@ -148,7 +160,7 @@ const addEmployee = () => {
         {
           // Question #2 - Employee Last Name
           type: "input",
-          name: "employeeLastName",
+          name: "last_name",
           message: "What's the employee's last name? (Required)",
 
           // Validation to ensure input
@@ -164,7 +176,7 @@ const addEmployee = () => {
         {
           // Question #3 - Select Employee Role from Database
           type: "list",
-          name: "employeeRole",
+          name: "role",
           // Need to work out how to input the roles from the database here
           choices: ["TEST1", "TEST2"],
 
@@ -173,14 +185,32 @@ const addEmployee = () => {
         {
           // Question #4 - Select Manager (If Applicable)
           type: "list",
-          name: "employeeManager",
+          name: "manager_id",
           choices: ["TEST MANAGER", "None"],
           // May need to do a .then statement here as well
         },
       ])
       .then((answer) => {
+        // NEED TO CONFIRM SQL SET UP //
+
+        const sql = `INSERT INTO employee (first_name, last_name, role_id, manager_id) VALUES (?,?,?,?)`;
+        // Set up Parameters with the answers
+        const params = [
+          answer.first_name,
+          answer.last_name,
+          answer.role,
+          answer.manager_id,
+        ];
+        console.log("DATA - LINE 198", params);
+        db.query(sql, params, (err, res) => {
+          if (err) {
+            res.status(400).json({ error: err.message });
+            return;
+          }
+          res.json({ message: "Success!", data: answer });
+        });
         console.log(
-          `Added ${answer.employeeFirstName} ${answer.employeeLastName} to the database!`
+          `Added ${answer.first_name} ${answer.last_name} to the database!`
         );
       })
       // RETURN TO MENU AFTER PROMPTS ARE ANSWERED
@@ -230,6 +260,7 @@ function getRoles() {
   db.query("SELECT * FROM role", (err, res) => {
     if (err) throw err;
     console.table(res);
+    promptUser();
   });
 }
 
@@ -299,6 +330,7 @@ function getDepartments() {
   db.query("SELECT * FROM department", (err, res) => {
     if (err) throw err;
     console.table(res);
+    promptUser();
   });
 }
 
