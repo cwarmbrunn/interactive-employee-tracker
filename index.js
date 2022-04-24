@@ -107,7 +107,7 @@ const promptUser = () => {
 
 function getEmployees() {
   db.query(
-    `SELECT employee.id,employee.first_name AS 'first name', employee.last_name AS 'last name', role.title AS 'job title', department.name AS 'department', role.salary, employee.manager_id AS 'manager' FROM employee JOIN role ON employee.role_id = role.id JOIN department ON role.department_id = department.id`,
+    `SELECT employee.id,employee.first_name AS 'first name', employee.last_name AS 'last name', role.title AS 'job title', department.name AS 'department', role.salary, CONCAT (manager.first_name, ' ', manager.last_name) AS 'manager'  FROM employee JOIN role ON employee.role_id = role.id JOIN department ON role.department_id = department.id LEFT JOIN employee manager ON manager.id = employee.manager_id`,
     // EMPLOYEE MANAGER INFORMATION //
     // TO DO: Right now, this shows as a number - need to set manager_id equal to employee id number (to show name)
     (err, res) => {
