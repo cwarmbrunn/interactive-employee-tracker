@@ -122,6 +122,15 @@ function getEmployees() {
 
 // ADD NEW EMPLOYEE //
 const addEmployee = () => {
+  const managerChoices = [];
+  db.query(` SELECT * FROM employee`, (err, res) => {
+    if (err) throw err;
+    console.log(res);
+  });
+  managerChoices.push({
+    name: employee.first_name + " " + employee.last_name,
+    value: employee.id,
+  });
   // Set up inquirer prompts to begin asking questions
   return (
     inquirer
@@ -165,6 +174,7 @@ const addEmployee = () => {
 
           // TO DO //
           // Need to input role types from database here
+          // Save as a variable and put that here
           choices: ["TEST1", "TEST2"],
 
           // May need to do a .then statement to capture data at end
@@ -175,35 +185,13 @@ const addEmployee = () => {
           name: "manager_id",
           // TO DO //
           // Need to insert employee choices from database (and include None)
-          choices: ["TEST MANAGER", "None"],
+          // Save as a variable and put that here
+          choices: [managerChoices, "None"],
         },
       ])
-      .then((answer) => {
-        const sql = `INSERT INTO employee (first_name, last_name, role_id, manager_id) VALUES (?,?,?,?)`;
-        // Set up Parameters with the answers
-        const params = [
-          answer.first_name,
-          answer.last_name,
-          answer.role,
-          answer.manager_id,
-        ];
-        console.log("DATA FROM PARAMS - LINE 198", params);
 
-        // TO DO
+      // `Added ${answer.first_name} ${answer.last_name} to the database!`
 
-        // Figure out how to make this work and push the data to the
-        db.query(sql, params, (err, res) => {
-          if (err) {
-            res.status(400).json({ error: err.message });
-            return;
-          }
-          // TODO - Figure out how to make this work and push the data to employee database
-          res.json({ message: "Success!", data: answer });
-        });
-        console.log(
-          `Added ${answer.first_name} ${answer.last_name} to the database!`
-        );
-      })
       // TO DO //
 
       // Get this to properly return to the menu after questions are answered
@@ -271,12 +259,16 @@ function getRoles() {
 
 // #5 - ADD EMPLOYEE ROLE //
 const addEmployeeRole = () => {
-  // Set up inquirer prompts
-  // const sql = `SELECT * FROM department`;
-  // db.promise().query(sql, (err, res) => {
-  //   if (err) throw err;
-  //   let deptNamesArray = [];
-  // });
+  const departmentsforRole = `SELECT name, id FROM department`;
+
+  db.query(departmentsforRole, (err, addedDepartments) => {
+    if (err) throw err;
+
+    const departmentChoices = addedDepartments.map((dept) => {
+      const departmentChoiceforRole = { name: dept.name, value: dept.id };
+      return departmentChoiceforRole;
+    });
+  });
   return (
     inquirer
       .prompt([
