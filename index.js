@@ -43,8 +43,8 @@ const promptUser = () => {
     .then((userSelection) => {
       // Set up if statements for user input
       if (userSelection.nextSteps === "View All Employees") {
-        // TEST VERSION IS DONE //
-        // Create a function to get all of the employees
+        // Create a function to get all of the employees' data - including
+        // employee ID, first/last names, job title, salary, and manager (if applicable)
         getEmployees();
       }
       if (userSelection.nextSteps === "Add Employee") {
@@ -107,13 +107,12 @@ const promptUser = () => {
 
 function getEmployees() {
   db.query(
+    // Select employee ID, first/last name, job title, department name, salary, and manager they report to (if applicable)
     `SELECT employee.id,employee.first_name AS 'first name', employee.last_name AS 'last name', role.title AS 'job title', department.name AS 'department', role.salary, CONCAT (manager.first_name, ' ', manager.last_name) AS 'manager'  FROM employee JOIN role ON employee.role_id = role.id JOIN department ON role.department_id = department.id LEFT JOIN employee manager ON manager.id = employee.manager_id`,
-    // EMPLOYEE MANAGER INFORMATION //
-    // TO DO: Right now, this shows as a number - need to set manager_id equal to employee id number (to show name)
     (err, res) => {
       if (err) throw err;
       console.table(res);
-
+      // RETURN TO TABLE AFTER DISPLAYED
       promptUser();
     }
   );
@@ -372,14 +371,16 @@ const addDepartment = () => {
           },
         },
       ])
-      .then((answers) => {
-        let sql = `INSERT INTO department(name) VALUES (?)`;
-        db.query(sql, answers.addedDepartment, (err, res) => {
+      .then((answer) => {
+        const sql = `INSERT INTO department (name) VALUES (?)`;
+        db.query(sql, answer.addedDepartment, (err, res) => {
           if (err) throw err;
+          // Need to add new department to list in department database
+          // Set up a console log with template literals
+          console.log(
+            `You've added ${answer.addedDepartment} to the database!`
+          );
         });
-        // Need to add new department to list in department database
-        // Set up a console log with template literals
-        console.log(`You've added ${answers.addedDepartment} to the database!`);
       })
       // RETURN TO MENU AFTER PROMPT IS ANSWERED
       .then((answers) => {
