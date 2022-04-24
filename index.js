@@ -339,14 +339,11 @@ const addEmployeeRole = () => {
 // Function to get all departments and their ids
 
 function getDepartments() {
-  db.query(
-    "SELECT employee.id, department.name AS 'department' FROM employee  JOIN role on employee.role_id = role.id JOIN department ON role.department_id = department.id",
-    (err, res) => {
-      if (err) throw err;
-      console.table(res);
-      promptUser();
-    }
-  );
+  db.query("SELECT * FROM department", (err, res) => {
+    if (err) throw err;
+    console.table(res);
+    promptUser();
+  });
 }
 
 // #7 - ADD A DEPARTMENT //
@@ -361,8 +358,8 @@ const addDepartment = () => {
           name: "addedDepartment",
           message: "What is the name of the department? (Required)",
           // Validation to ensure input
-          validate: (answer) => {
-            if (answer) {
+          validate: (answers) => {
+            if (answers) {
               return true;
             } else {
               console.log("Please enter the name of the department!");
@@ -371,14 +368,14 @@ const addDepartment = () => {
           },
         },
       ])
-      .then((answer) => {
+      .then((answers) => {
         const sql = `INSERT INTO department (name) VALUES (?)`;
-        db.query(sql, answer.addedDepartment, (err, res) => {
+        db.query(sql, answers.addedDepartment, (err, res) => {
           if (err) throw err;
           // Need to add new department to list in department database
           // Set up a console log with template literals
           console.log(
-            `You've added ${answer.addedDepartment} to the database!`
+            `You've added ${answers.addedDepartment} to the database!`
           );
         });
       })
