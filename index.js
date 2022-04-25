@@ -121,29 +121,34 @@ function getEmployees() {
 // #2 - ADD NEW EMPLOYEE //
 
 // ADD NEW EMPLOYEE //
-const addEmployee = () => {
-  async () => {
-    // Create an empty Manager Choices array that will hold present employees
-    const managerChoices = [];
-    // Create an empty Role Choices array that will hold present roles
-    // const roleChoices = [];
+const addEmployee = async () => {
+  // () => {
+  // Create an empty Manager Choices array that will hold present employees
+  const managerChoices = [];
+  // Create an empty Role Choices array that will hold present roles
+  const roleChoices = [];
 
-    // Set a variable const employees equal to the db.query() that will call the employee table
+  // Set a variable const employees equal to the db.query() that will call the employee table
 
-    const employees = await db.query(`SELECT * FROM employee`);
+  const [employees] = await db.promise().query(`SELECT * FROM employee`);
 
-    // const roleOptions = await db.query(`SELECT * FROM role `)
-  };
+  // const roleOptions = await db.query(`SELECT * FROM role `)
+
+  const [roleOptions] = await db.promise().query(`SELECT * FROM role`);
   // Push the data into the managerChoices.push()
-
-  managerChoices.push({
-    name: employee.first_name + " " + employee.last_name,
-    value: employee.id,
-  });
-
-  // Console log to check the data
-
+  for (i = 0; i < employees.length; i++) {
+    managerChoices.push({
+      name: employees[i].first_name + " " + employees[i].last_name,
+      value: employees[i].id,
+    });
+  }
   console.log(managerChoices);
+
+  for (i = 0; i < roleOptions.length; i++) {
+    roleChoices.push({ name: roleOptions[i].title, value: roleOptions[i].id });
+  }
+
+  console.log(roleChoices);
   // Set up inquirer prompts to begin asking questions
   return (
     inquirer
@@ -184,33 +189,35 @@ const addEmployee = () => {
           // Question #3 - Select Employee Role from Database
           type: "list",
           name: "role",
-
-          // TO DO //
-          // Need to input role types from database here
-          // Save as a variable and put that here
-          choices: [roleChoices],
-
-          // May need to do a .then statement to capture data at end
+          // Uses spread operator to add role choices
+          choices: [...roleChoices],
         },
         {
           // Question #4 - Select Manager (If Applicable)
           type: "list",
           name: "manager_id",
-          // TO DO //
-          // Need to insert employee choices from database (and include None)
-          // Save as a variable and put that here
-          choices: [managerChoices, "None"],
+          // Uses spread operator to add manager choices and also adds a string of "Null"
+          choices: [...managerChoices, "Null"],
         },
       ])
-
-      // `Added ${answer.first_name} ${answer.last_name} to the database!`
-
-      // TO DO //
-
-      // Get this to properly return to the menu after questions are answered
       // RETURN TO MENU AFTER PROMPTS ARE ANSWERED
-      .then((answers) => {
-        promptUser();
+      .then((answer) => {
+        db.query(
+          `INSERT INTO employee SET ?`,
+          {
+            first_name: answer.first_name,
+            last_name: answer.last_name,
+            role_id: answer.roleChoices,
+            manager_id: answer.managerChoices,
+          },
+          (err, res) => {
+            if (err) throw err;
+          }
+        );
+        console.log(
+          `Added ${answer.first_name} ${answer.last_name} to the database!`
+        ),
+          promptUser();
       })
   );
 };
