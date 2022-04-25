@@ -3,6 +3,7 @@ const express = require("express");
 const db = require("./db/connection");
 // Require Inquirer
 const inquirer = require("inquirer");
+const { animationFrames } = require("rxjs");
 // Require console.table
 require("console.table");
 
@@ -196,7 +197,7 @@ const addEmployee = async () => {
           type: "list",
           name: "manager_id",
           // Uses spread operator to add manager choices and also adds a string of "Null"
-          choices: [...managerChoices, "Null"],
+          choices: [...managerChoices],
         },
       ])
       // RETURN TO MENU AFTER PROMPTS ARE ANSWERED
@@ -216,8 +217,10 @@ const addEmployee = async () => {
         );
         console.log(
           `Added ${answer.first_name} ${answer.last_name} to the database!`
-        ),
-          promptUser();
+        );
+      })
+      .then((answer) => {
+        promptUser();
       })
   );
 };
@@ -245,15 +248,11 @@ const updateEmployeeRole = async () => {
       value: employees[i].id,
     });
   }
-  // TEST
-  console.log(changeRoleOfEmployee);
 
   // Push the role options into the roleChoices
   for (i = 0; i < roleOptions.length; i++) {
     changeRoleTo.push({ name: roleOptions[i].title, value: roleOptions[i].id });
   }
-  // TEST
-  console.log(changeRoleTo);
 
   // Set up inquirer prompts
   return (
@@ -265,9 +264,7 @@ const updateEmployeeRole = async () => {
           name: "updatedEmployeeRole",
           message: "Which employee's role would you like to update?",
 
-          // TO DO //
-
-          // Pull employee first/last names from database
+          // Pull current employees from database
           choices: [...changeRoleOfEmployee],
         },
         {
@@ -276,9 +273,7 @@ const updateEmployeeRole = async () => {
           name: "newEmployeeRole",
           message: "Which role do you want to assign to the selected employee?",
 
-          // TO DO //
-
-          // Pull roles from the database
+          // Pull current roles from the database
           choices: [...changeRoleTo],
         },
       ])
@@ -286,18 +281,24 @@ const updateEmployeeRole = async () => {
       .then((answer) => {
         console.log(answer);
         db.query(
-          `INSERT INTO role SET ?`,
-          {
-            id: answer.updatedEmployeeRole,
-            role_id: answer.newEmployeeRole,
-          },
+          `UPDATE employee SET role_id = ${answer.newEmployeeRole}
+          WHERE id = ${answer.updatedEmployeeRole};`,
+
           (err, res) => {
             if (err) throw err;
           }
         );
         // Console log to inform user of the changed role
         console.log(
-          `You have updated ${answer.updatedEmployeeRole} to a ${answer.newEmployeeRole} - this change has been added to the database!`
+          `You have updated ${
+            changeRoleOfEmployee.filter(
+              (emp) => emp.value === answer.updatedEmployeeRole
+            )[0].name
+          } to a ${
+            changeRoleTo.filter(
+              (role) => role.value === answer.newEmployeeRole
+            )[0].name
+          } - this change has been added to the database!`
         ),
           // RETURN TO MENU AFTER PROMPTS ARE ANSWERED
           promptUser();
@@ -308,83 +309,94 @@ const updateEmployeeRole = async () => {
 
 // Function to get all roles, role ID, the department that role belongs to and the salary
 function getRoles() {
-  db.query(
-    "SELECT employee.id, role.title, department.name AS 'department', role.salary FROM employee JOIN role ON employee.role_id = role.id JOIN department ON role.department_id = department.id ",
-    (err, res) => {
-      if (err) throw err;
-      console.table(res);
-      promptUser();
-    }
-  );
+  db.query(`SELECT * FROM role;`, (err, res) => {
+    if (err) throw err;
+    console.table(res);
+    promptUser();
+  });
 }
 
 // #5 - ADD EMPLOYEE ROLE //
-const addEmployeeRole = () => {
-  const departmentsforRole = `SELECT name, id FROM department`;
+const addEmployeeRole = async () => {
+  // Create an empty Department Choices array that will hold current departments
+  const departmentChoices = [];
 
-  db.query(departmentsforRole, (err, addedDepartments) => {
-    if (err) throw err;
+  // Set a variable const departments equal to the db.query() that will call the department table
 
-    const departmentChoices = addedDepartments.map((dept) => {
-      const departmentChoiceforRole = { name: dept.name, value: dept.id };
-      return departmentChoiceforRole;
+  const [departments] = await db.promise().query(`SELECT * FROM department`);
+
+  // Push the data into the departmentChoices array
+  for (i = 0; i < departments.length; i++) {
+    departmentChoices.push({
+      name: departments[i].name,
+      value: departments[i].id,
     });
-  });
-  return (
-    inquirer
-      .prompt([
-        {
-          // Question #1 - Name of Role
-          type: "input",
-          name: "addedRole",
-          message: "What is the name of the role? (Required)",
+  }
+  return inquirer
+    .prompt([
+      {
+        // Question #1 - Name of Role
+        type: "input",
+        name: "addedRole",
+        message: "What is the name of the role? (Required)",
 
-          // Validation to ensure input
-          validate: (answer) => {
-            if (answer) {
-              return true;
-            } else {
-              console.log("Please enter the name of the role!");
-              return false;
-            }
-          },
-        },
-        {
-          // Question #2 - Salary of Role
-          type: "input",
-          name: "newRoleSalary",
-          message:
-            "What is the salary of the role? (Required and Numbers ONLY!)",
-
-          // Validation to ensure input - NUMERIC
-          validate: (answer) => {
-            if (isNaN(answer) || !answer) {
-              return "Please enter a number for the salary - delete your entry with the backspace key and try again!";
-            }
+        // Validation to ensure input
+        validate: (answer) => {
+          if (answer) {
             return true;
-          },
+          } else {
+            console.log("Please enter the name of the role!");
+            return false;
+          }
         },
-        {
-          // Question #3 - Where Does Role Belong (Department Location)
-          type: "list",
-          name: "newRoleDepartment",
-          message: "What department does the role belong to?",
-          // TO DO //
+      },
+      {
+        // Question #2 - Salary of Role
+        type: "input",
+        name: "newRoleSalary",
+        message: "What is the salary of the role? (Required and Numbers ONLY!)",
 
-          // Pull the department list from the database
-          choices: ["Banking", "Marketing", "Legal"],
+        // Validation to ensure input - NUMERIC
+        validate: (answer) => {
+          if (isNaN(answer) || !answer) {
+            return "Please enter a number for the salary - delete your entry with the backspace key and try again!";
+          }
+          return true;
         },
-      ])
-      .then((answers) => {
-        console.log(
-          `You've added a ${answers.addedRole} to the ${answers.newRoleDepartment} department - this change has been added to the database.`
-        );
-      })
-      // RETURN TO MENU AFTER PROMPTS ARE ANSWERED
-      .then((answers) => {
+      },
+      {
+        // Question #3 - Where Does Role Belong (Department Location)
+        type: "list",
+        name: "newRoleDepartment",
+        message: "What department does the role belong to?",
+
+        // Pull the department list from the database
+        choices: [...departmentChoices],
+      },
+    ])
+    .then((answer) => {
+      console.log(answer);
+      db.query(
+        `INSERT INTO role SET ?`,
+        {
+          title: answer.addedRole,
+          salary: answer.newRoleSalary,
+          department_id: answer.newRoleDepartment,
+        },
+        (err, res) => {
+          if (err) throw err;
+        }
+      );
+      console.log(
+        `You've added a ${answer.addedRole} to the ${
+          departmentChoices.filter(
+            (dept) => dept.value === answer.newRoleDepartment
+          )[0].name
+        } department - this change has been added to the database.`
+      ),
+        // RETURN TO MENU AFTER PROMPTS ARE ANSWERED
         promptUser();
-      })
-  );
+    });
 };
 
 //#6 - VIEW ALL DEPARTMENTS //
