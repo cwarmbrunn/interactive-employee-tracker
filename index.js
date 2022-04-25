@@ -122,33 +122,32 @@ function getEmployees() {
 
 // ADD NEW EMPLOYEE //
 const addEmployee = async () => {
-  // () => {
-  // Create an empty Manager Choices array that will hold present employees
+  // Create an empty Manager Choices array that will hold current employees
   const managerChoices = [];
-  // Create an empty Role Choices array that will hold present roles
+  // Create an empty Role Choices array that will hold current roles
   const roleChoices = [];
 
   // Set a variable const employees equal to the db.query() that will call the employee table
 
   const [employees] = await db.promise().query(`SELECT * FROM employee`);
 
-  // const roleOptions = await db.query(`SELECT * FROM role `)
+  // Set variable const roleOptions equal to the db.query that will call the role table
 
   const [roleOptions] = await db.promise().query(`SELECT * FROM role`);
-  // Push the data into the managerChoices.push()
+
+  // Push the data into the managerChoices array
   for (i = 0; i < employees.length; i++) {
     managerChoices.push({
       name: employees[i].first_name + " " + employees[i].last_name,
       value: employees[i].id,
     });
   }
-  console.log(managerChoices);
 
+  // Push the role options into the roleChoices
   for (i = 0; i < roleOptions.length; i++) {
     roleChoices.push({ name: roleOptions[i].title, value: roleOptions[i].id });
   }
 
-  console.log(roleChoices);
   // Set up inquirer prompts to begin asking questions
   return (
     inquirer
@@ -202,13 +201,14 @@ const addEmployee = async () => {
       ])
       // RETURN TO MENU AFTER PROMPTS ARE ANSWERED
       .then((answer) => {
+        console.log(answer);
         db.query(
           `INSERT INTO employee SET ?`,
           {
             first_name: answer.first_name,
             last_name: answer.last_name,
-            role_id: answer.roleChoices,
-            manager_id: answer.managerChoices,
+            role_id: answer.role,
+            manager_id: answer.manager_id,
           },
           (err, res) => {
             if (err) throw err;
@@ -223,13 +223,38 @@ const addEmployee = async () => {
 };
 
 // #3  - UPDATE EXISTING EMPLOYEE ROLE //
-const updateEmployeeRole = () => {
-  const employeesNew = `SELECT * FROM employee`;
-  const rolesNew = `SELECT * FROM role`;
+const updateEmployeeRole = async () => {
+  // Set up an empty array to hold the current employees
+  const changeRoleOfEmployee = [];
 
-  db.query(employeesNew, (err, employeesForUpdate) => {
-    if (err) throw err;
-  });
+  // Set up an empty array to hold what the role will change to
+  const changeRoleTo = [];
+
+  // Set a variable "employees" equal to the db.query that will call the employee table
+  const [employees] = await db.promise().query(`SELECT * FROM employee`);
+
+  // Set a variable roleOptions equal to the db.query that will call the role table
+  const [roleOptions] = await db.promise().query(`SELECT * FROM role`);
+
+  // Push the employee options data into changeRoleOfEmployee
+
+  // Set up a for loop to cycle through the employees length
+  for (i = 0; i < employees.length; i++) {
+    changeRoleOfEmployee.push({
+      name: employees[i].first_name + " " + employees[i].last_name,
+      value: employees[i].id,
+    });
+  }
+  // TEST
+  console.log(changeRoleOfEmployee);
+
+  // Push the role options into the roleChoices
+  for (i = 0; i < roleOptions.length; i++) {
+    changeRoleTo.push({ name: roleOptions[i].title, value: roleOptions[i].id });
+  }
+  // TEST
+  console.log(changeRoleTo);
+
   // Set up inquirer prompts
   return (
     inquirer
@@ -243,7 +268,7 @@ const updateEmployeeRole = () => {
           // TO DO //
 
           // Pull employee first/last names from database
-          choices: ["TEST #1", "TEST #2"],
+          choices: [...changeRoleOfEmployee],
         },
         {
           // Question #2 - Asks which role you want to assign to the selected employee
@@ -254,18 +279,28 @@ const updateEmployeeRole = () => {
           // TO DO //
 
           // Pull roles from the database
-          choices: ["TEST ROLE #1", "TEST ROLE #2"],
+          choices: [...changeRoleTo],
         },
       ])
       // Then console.log answers via template literal
-      .then((answers) => {
-        console.log(
-          `You have updated ${answers.updatedEmployeeRole} to a ${answers.newEmployeeRole} - this change has been added to the database!`
+      .then((answer) => {
+        console.log(answer);
+        db.query(
+          `INSERT INTO role SET ?`,
+          {
+            id: answer.updatedEmployeeRole,
+            role_id: answer.newEmployeeRole,
+          },
+          (err, res) => {
+            if (err) throw err;
+          }
         );
-      })
-      // RETURN TO MENU AFTER PROMPTS ARE ANSWERED
-      .then((answers) => {
-        promptUser();
+        // Console log to inform user of the changed role
+        console.log(
+          `You have updated ${answer.updatedEmployeeRole} to a ${answer.newEmployeeRole} - this change has been added to the database!`
+        ),
+          // RETURN TO MENU AFTER PROMPTS ARE ANSWERED
+          promptUser();
       })
   );
 };
