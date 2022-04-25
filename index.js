@@ -122,15 +122,28 @@ function getEmployees() {
 
 // ADD NEW EMPLOYEE //
 const addEmployee = () => {
-  const managerChoices = [];
-  db.query(` SELECT * FROM employee`, (err, res) => {
-    if (err) throw err;
-    console.log(res);
-  });
+  async () => {
+    // Create an empty Manager Choices array that will hold present employees
+    const managerChoices = [];
+    // Create an empty Role Choices array that will hold present roles
+    // const roleChoices = [];
+
+    // Set a variable const employees equal to the db.query() that will call the employee table
+
+    const employees = await db.query(`SELECT * FROM employee`);
+
+    // const roleOptions = await db.query(`SELECT * FROM role `)
+  };
+  // Push the data into the managerChoices.push()
+
   managerChoices.push({
     name: employee.first_name + " " + employee.last_name,
     value: employee.id,
   });
+
+  // Console log to check the data
+
+  console.log(managerChoices);
   // Set up inquirer prompts to begin asking questions
   return (
     inquirer
@@ -175,7 +188,7 @@ const addEmployee = () => {
           // TO DO //
           // Need to input role types from database here
           // Save as a variable and put that here
-          choices: ["TEST1", "TEST2"],
+          choices: [roleChoices],
 
           // May need to do a .then statement to capture data at end
         },
@@ -204,6 +217,12 @@ const addEmployee = () => {
 
 // #3  - UPDATE EXISTING EMPLOYEE ROLE //
 const updateEmployeeRole = () => {
+  const employeesNew = `SELECT * FROM employee`;
+  const rolesNew = `SELECT * FROM role`;
+
+  db.query(employeesNew, (err, employeesForUpdate) => {
+    if (err) throw err;
+  });
   // Set up inquirer prompts
   return (
     inquirer
