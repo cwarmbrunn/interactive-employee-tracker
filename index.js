@@ -185,27 +185,28 @@ const addEmployee = async () => {
           // Question #3 - Select Employee Role from Database
           type: "list",
           name: "role",
+          message: "What is the employee's job title?",
           // Uses spread operator to add role choices
           choices: [...roleChoices],
         },
         {
           // Question #4 - Select Manager (If Applicable)
           type: "list",
-          name: "manager_id",
+          name: "manager",
+          message: "Who is the employee's manager?",
           // Uses spread operator to add manager choices and also adds a string of "Null"
           choices: [...managerChoices],
         },
       ])
       // RETURN TO MENU AFTER PROMPTS ARE ANSWERED
       .then((answer) => {
-        console.log(answer);
         db.query(
           `INSERT INTO employee SET ?`,
           {
             first_name: answer.first_name,
             last_name: answer.last_name,
             role_id: answer.role,
-            manager_id: answer.manager_id,
+            manager_id: answer.manager,
           },
           (err, res) => {
             if (err) throw err;
@@ -275,7 +276,6 @@ const updateEmployeeRole = async () => {
       ])
       // Then console.log answers via template literal
       .then((answer) => {
-        console.log(answer);
         db.query(
           `UPDATE employee SET role_id = ${answer.newEmployeeRole}
           WHERE id = ${answer.updatedEmployeeRole};`,
@@ -374,7 +374,7 @@ const addEmployeeRole = async () => {
       },
     ])
     .then((answer) => {
-      console.log(answer);
+      // Set Database Query
       db.query(
         `INSERT INTO role SET ?`,
         {
@@ -383,6 +383,7 @@ const addEmployeeRole = async () => {
           department_id: answer.newRoleDepartment,
         },
         (err, res) => {
+          //
           if (err) throw err;
         }
       );
