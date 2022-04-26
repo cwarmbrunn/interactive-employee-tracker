@@ -3,7 +3,7 @@ const express = require("express");
 const db = require("./db/connection");
 // Require Inquirer
 const inquirer = require("inquirer");
-const { animationFrames } = require("rxjs");
+
 // Require console.table
 require("console.table");
 
@@ -50,7 +50,6 @@ const promptUser = () => {
       }
       if (userSelection.nextSteps === "Add Employee") {
         addEmployee();
-        // TEST VERSION IS COMPLETE //
 
         // Ask for Employee First Name
         // Ask for Employee Last Name
@@ -60,8 +59,6 @@ const promptUser = () => {
       }
       if (userSelection.nextSteps === "Update Employee Role") {
         updateEmployeeRole();
-        // TEST VERSION IS COMPLETE //
-
         // Ask Which Employee's role you want to update (list of existing employees)
         // Ask Which role you want to assign to the selected employee
         // RETURN TO MENU
@@ -69,13 +66,12 @@ const promptUser = () => {
 
       if (userSelection.nextSteps === "View All Roles") {
         getRoles();
-        // TEST VERSION IS COMPLETE //
+        // View Employee Roles //
       }
       if (userSelection.nextSteps === "Add Role") {
         console.log("You chose to add a role!");
-        // TEST VERSION IS COMPLETE //
 
-        // Function to trigger prompts for adding a new role to the datbase
+        // Function to trigger prompts for adding a new role to the database
         addEmployeeRole();
         // Ask for Name of Role
         // Ask for Salary of Role
@@ -87,7 +83,7 @@ const promptUser = () => {
         getDepartments();
       }
       if (userSelection.nextSteps === "Add Department") {
-        // TEST VERSION IS COMPLETE //
+        // Prompts user to add a department to the database
 
         addDepartment();
         // RETURN TO MENU
@@ -309,11 +305,14 @@ const updateEmployeeRole = async () => {
 
 // Function to get all roles, role ID, the department that role belongs to and the salary
 function getRoles() {
-  db.query(`SELECT * FROM role;`, (err, res) => {
-    if (err) throw err;
-    console.table(res);
-    promptUser();
-  });
+  db.query(
+    `SELECT role.id, role.title, department.name AS department, role.salary FROM role LEFT JOIN department on role.department_id = department.id;`,
+    (err, res) => {
+      if (err) throw err;
+      console.table(res);
+      promptUser();
+    }
+  );
 }
 
 // #5 - ADD EMPLOYEE ROLE //
