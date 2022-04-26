@@ -6,7 +6,7 @@ Interactive Employee Tracker
 
 **Project Description/Summary:**
 
-A command-line application built from scratch to manage a company's employee database, using Node.js, Inquirer, and MySQL. The application allows the user to view all employees, roles, departments - as well as adding new ones if they wish.  
+A command-line application built from scratch to manage a company's employee database, using Node.js, Inquirer, and MySQL. The application allows the user to view all employees, roles, departments - as well as adding new ones if they wish.
 
 ---
 
@@ -35,4 +35,6 @@ Then, you can either run **npm start** or **node index.js** to begin the applica
 ---
 
 **Screenshot and Walkthrough Video:**
-![]()
+![Screenshot of the Employee Tracker running](./assets/screenshot.png)
+
+Walkthrough Video: [Here](https://watch.screencastify.com/v/OfyZsm5c1Rs7Ve8XwoNc)
